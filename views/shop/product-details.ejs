@@ -6,14 +6,14 @@
 <body>
     <%- include('../includes/nav.ejs')%>
     <main class="centered">
-        <% if(product.title) { %>
-            <h1><%= product.title %></h1>
+         <% if(product) { %>
+            <h1><%= product.dataValues.title %></h1>
             <hr>
             <div>
-                <img src="<%= product.imgUrl %>" alt="<%= product.title %>">
+                <img class="image img" src="<%= product.dataValues.imageUrl %>" alt="<%= product.dataValues.title %>">
             </div>
-            <h2><%= product.price %></h2>
-            <p><%= product.description %></p>
+            <h2><%= product.dataValues.price %></h2>
+            <p><%= product.dataValues.description %></p>
              <%- include('../includes/add-to-cart.ejs')%>
              <% } else { %>
                 <h2>No Product Found</h2>
