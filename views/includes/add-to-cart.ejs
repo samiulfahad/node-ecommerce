@@ -1,6 +1,7 @@
+<% if(isLoggedIn) { %>
 <form action="/cart" method="POST">
     <button type="submit" class="btn">Add To Cart</button>
-    <input type="hidden" name="unit">
-    <input type="hidden" name="productId" value="<%= product.dataValues.id %>">
+    <input type="hidden" name="productId" value="<%= product._id %>">
     <input type="hidden" name="quantity" value="1">
 </form>
+<% } %>

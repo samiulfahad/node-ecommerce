@@ -1,75 +1,57 @@
 const express = require('express')
 const path = require('path')
+const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const session = require('express-session')
+const MongoDBStore = require('connect-mongodb-session')(session)
+const {User} = require('./models/models')
 const vendorRouter = require('./routers/vendor')
 const shopRouter = require('./routers/shop')
-const sequelize = require('./models/dbConnection')
-const {  Product, User, Cart, CartItem, Order, OrderItem } = require('./models/models')
+const authRouter = require('./routers/auth')
 const app = express()
 app.set('view engine', 'ejs')
 app.set('views', 'views')
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, '/public')))
+// Session storage
+const store = new MongoDBStore({
+    uri: 'mongodb://127.0.0.1:27017/shop',
+    collection: 'sessions'
+})
+// Initialize Session
+app.use(session({
+    secret: 'my secret str',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+}))
 app.use( async (req, res, next) => {
     try{
-         let user = await User.findByPk(1)
-        if(user){
-        req.user = user
+        if(req.session.user){
+            req.user = await User.findById(req.session.user._id)
         }
-    next()
     }
     catch(err){
         console.log(err)
     }
+    next()
 })
 app.use(shopRouter)
+app.use(authRouter)
 app.use('/vendor', vendorRouter)
 app.use('*', (req, res)=>{
-    res.render('404.ejs', {title: '404 Page NOT Found', path:''})
+    res.render('404.ejs', {title: '404 Page NOT Found', path:'', isLoggedIn: req.isLoggedIn})
 })
 
-const port = process.env.PORT || 3000
-
-// One-One Relationship
-User.hasOne(Cart, {onDelete: 'CASCADE' })
-Cart.belongsTo(User, {onDelete: 'CASCADE' })
-
-//One-Many Relationships
-User.hasMany(Product)
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' })
-
-// Many-Many Relationship
-Cart.belongsToMany(Product, {through: CartItem})
-Product.belongsToMany(Cart, {through: CartItem})
-
-//One-Many Relationship
-User.hasMany(Order)
-Order.belongsTo(User)
-
-// Many-many Relationship
-Order.belongsToMany(Product, {through: OrderItem})
-
-
-const initSeq = async() => {
-    await sequelize
-    //.sync({force: true})
-    .sync()
-    try{
-        let user = await User.findByPk(1)
-        if(!user){
-            user = await User.create({
-                email: 'hasan@test.com',
-                name: "Hasan Mahmud"
-            })
-        await user.createCart()
-        }
-    }
-    catch(err) {
-        console.log(err)
-    }
-}
-initSeq()
-
-app.listen(port, _ => {
+const port = process.env.PORT || 8000
+const connectDB = async () => {
+   await mongoose.connect('mongodb://127.0.0.1:27017/shop')
+   console.log(`Connected to DB successfully`)
+   const user = await User.findOne()
+   if(!user){
+        await User.create({name: 'Demo User', email:'demo@email.com', cart: {items: []}})
+   }
+   app.listen(port, _ => {
     console.log(`Server listening on port ${port}`)
-})
+})}
+connectDB()

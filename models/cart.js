@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('fs').promises
-const Product = require('./models')
+const Product = require('./MySQLmodels')
 const dir = path.join(__dirname, ('../data/cart.json'))
 
 const Cart = class Cart {
