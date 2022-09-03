@@ -43,7 +43,7 @@ app.use('*', (req, res)=>{
     res.render('404.ejs', {title: '404 Page NOT Found', path:'', isLoggedIn: req.isLoggedIn})
 })
 
-const port = process.env.PORT || 8000
+const port = process.env.PORT || 3000
 const connectDB = async () => {
    await mongoose.connect('mongodb://127.0.0.1:27017/shop')
    console.log(`Connected to DB successfully`)
